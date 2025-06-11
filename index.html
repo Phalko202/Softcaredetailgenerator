@@ -1,960 +1,1205 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Table OCR Extractor</title>
-  <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5.0.3/dist/tesseract.min.js"></script>
-  <!-- Add Font Awesome for better icons -->
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+  <title>Prescription Details Generator</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <style>
-    /* Modern Colorful Theme */
-    :root {
-      --primary: #4776E6;
-      --primary-light: #8E54E9;
-      --secondary: #FF8C42;
-      --success: #27ae60;
-      --error: #e74c3c;
-      --text: #2d3436;
-      --bg-light: #f7f9fc;
-      --bg-dark: #2d3436;
-      --border: #e1e8ed;
-    }
-    
-    body { 
-      background: linear-gradient(to right, #f7f9fc, #e6f0f9);
-      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    body {
+      min-height: 100vh;
       margin: 0;
-      padding: 30px;
-      color: var(--text);
+      font-family: 'Roboto', Arial, sans-serif;
+      position: relative;
+      background: #eaf6fb;
     }
-    
-    .container { 
-      max-width: 1200px;
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background: 
+        url('https://files.123freevectors.com/wp-content/original/155308-dark-blue-background-graphic.jpg') center/cover no-repeat,
+        linear-gradient(120deg, #2196f3 0%, #26c6da 60%, #b2ebf2 100%);
+      opacity: 1;
+      pointer-events: none;
+      transition: background 0.3s;
+    }
+    .outer-container {
+      min-height: 100vh;
+      width: 100vw;
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+    }
+    .main-card {
+      background: rgba(250,255,255,0.96);
+      border-radius: 18px;
+      box-shadow: 0 0 25px 0 rgba(0,80,140,0.13);
+      border: 1.5px solid #b3e0fc;
+      max-width: 1050px;
+      width: 95vw;
+      margin: 56px auto 44px auto;
+      padding: 36px 32px 32px 32px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      position: relative;
+      min-height: 120px;
+      box-sizing: border-box;
+      transition: background 0.3s, color 0.3s;
+    }
+    .back-btn {
+      position: absolute;
+      top: 24px;
+      left: 32px;
+      background: rgba(255, 255, 255, 0.9);
+      border: none;
+      color: #000000;
+      font-weight: 700;
+      font-size: 1.2rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      z-index: 10;
+      padding: 8px 12px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+      transition: all 0.2s ease;
+    }
+    .back-btn:hover {
+      background: rgba(255, 255, 255, 1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    }
+    .back-btn svg {
+      width: 26px;
+      height: 26px;
+      fill: #000000;
+    }
+    .credit {
+      position: fixed;
+      right: 32px;
+      bottom: 18px;
+      color: #000201;
+      font-size: 1.25rem;
+      font-weight: 700;
+      opacity: 1;
+      background: rgba(255,255,255,0.5);
+      border-radius: 10px;
+      padding: 8px 12px;
+      z-index: 100;
+      user-select: none;
+    }
+
+    /* Selection page modern cards */
+    .selection-container {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      max-width: 850px;
+      margin: 0 auto;
+    }
+    .intro-title {
+      background: linear-gradient(90deg, #1976d2, #26c6da);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-size: 2.4rem;
+      font-weight: 800;
+      margin-bottom: 36px;
+      letter-spacing: 0.5px;
+      text-align: center;
+    }
+    .card-container {
+      display: flex;
+      gap: 30px;
+      width: 100%;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .selection-card {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 24px rgba(25, 118, 210, 0.12);
+      overflow: hidden;
+      width: 280px;
+      transition: transform 0.3s, box-shadow 0.3s;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      border: 1px solid rgba(38, 198, 218, 0.2);
+      animation: fadeIn 0.5s ease-out forwards;
+    }
+    .selection-card:hover {
+      transform: translateY(-8px);
+      box-shadow: 0 12px 32px rgba(25, 118, 210, 0.2);
+    }
+    .selection-card:nth-child(2) {
+      animation-delay: 0.15s;
+    }
+    .card-image {
+      height: 170px;
+      background-size: contain;
+      background-repeat: no-repeat;
+      background-position: center center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-size 0.2s;
+    }
+    .card-content {
+      padding: 24px;
+      text-align: center;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+    .card-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      color: #1976d2;
+      margin-bottom: 12px;
+    }
+    .card-description {
+      color: #555;
+      font-size: 0.95rem;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+    .card-button {
+      background: linear-gradient(90deg, #1976d2 60%, #26c6da 100%);
+      color: white;
+      border: none;
+      border-radius: 30px;
+      padding: 12px 24px;
+      font-size: 1.05rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .card-button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(25, 118, 210, 0.3);
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    .version-tag {
+      background: rgba(38, 198, 218, 0.12);
+      color: #1976d2;
+      font-size: 0.8rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 20px;
+      margin-bottom: 12px;
+      display: inline-block;
+    }
+    /* Generator card backgrounds */
+    #aasandhaGen .generator-card {
+      background: url('https://imgur.com/2qxowBn') center/cover no-repeat, #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    #aasandhaGen .generator-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(250,255,255,0.93);
+      pointer-events: none;
+      z-index: 0;
+    }
+    #aasandhaGen .generator-card > * {
+      position: relative;
+      z-index: 1;
+    }
+    #foreignGen .generator-card {
+      background: url('https://imgur.com/JByCYIH') center/cover no-repeat, #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    #foreignGen .generator-card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: rgba(255,255,255,0.915);
+      pointer-events: none;
+      z-index: 0;
+    }
+    #foreignGen .generator-card > * {
+      position: relative;
+      z-index: 1;
+    }
+    .generator-card {
+      width: 100%;
+      max-width: 950px;
       margin: 0 auto;
       background: #fff;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(71, 118, 230, 0.1);
-      padding: 30px;
-      border-top: 4px solid var(--primary);
+      border-radius: 15px;
+      box-shadow: 0 2px 13px rgba(33, 150, 243, 0.07);
+      padding: 30px 26px 34px 26px;
+      transition: background 0.3s, color 0.3s;
     }
-    
-    h1 { 
-      color: var(--primary);
-      margin-top: 0;
-      font-size: 28px;
-      position: relative;
-      padding-bottom: 10px;
+    @media (max-width: 1100px) {
+      .main-card { max-width: 99vw; }
+      .generator-card { max-width: 99vw; }
     }
-    
-    h1:after {
-      content: '';
-      position: absolute;
-      bottom: 0;
-      left: 0;
-      width: 60px;
-      height: 4px;
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      border-radius: 2px;
+    @media (max-width: 700px) {
+      .main-card {
+        padding: 12px 2vw;
+        margin: 16px 0;
+        max-width: 100vw;
+        border-radius: 10px;
+      }
+      .generator-card {
+        padding: 10px 2vw 24px 2vw;
+      }
+      .card-container {
+        flex-direction: column;
+        gap: 22px;
+      }
+      .selection-card { width: 96%; max-width: 400px; margin: 0 auto;}
     }
-    
-    h3 {
-      color: var(--primary);
-      margin-top: 25px;
-      font-size: 18px;
+
+    /* --- DARK MODE FIXES --- */
+    body.dark-mode {
+      background: #181a20 !important;
+      color: #f7f7fa !important;
     }
-    
-    .file-input { 
-      margin: 20px 0;
-      background: var(--bg-light);
+    body.dark-mode::before {
+      background:
+        url('<a href="https://ibb.co/PvcbDT7s"><img src="https://i.ibb.co/rRxLdbCK/dark-abstract-5k-2b-2560x1080.jpg" alt="dark-abstract-5k-2b-2560x1080" border="0"></a>') center/cover no-repeat,
+        linear-gradient(120deg, #181a20 0%, #23272f 100%) !important;
+      opacity: 1 !important;
+    }
+    body.dark-mode .main-card,
+    body.dark-mode .generator-card,
+    body.dark-mode .selection-card,
+    body.dark-mode .card-content {
+      background: #23272f !important;
+      color: #f7f7fa !important;
+      box-shadow: 0 0 25px 0 rgba(0,0,0,0.35);
+      border-color: #3949ab !important;
+    }
+    body.dark-mode .credit,
+    body.dark-mode .back-btn {
+      background: rgba(40,40,50,0.7) !important;
+      color: #ffe082 !important;
+    }
+    body.dark-mode .card-title,
+    body.dark-mode .intro-title {
+      color: #90caf9 !important;
+    }
+    body.dark-mode .card-description,
+    body.dark-mode .version-tag {
+      color: #ffe082 !important;
+    }
+    body.dark-mode .card-button {
+      background: linear-gradient(90deg, #3949ab 60%, #1976d2 100%) !important;
+      color: #ffe082 !important;
+    }
+    body.dark-mode .results-table th {
+      background: #3949ab !important;
+      color: #ffe082 !important;
+    }
+    body.dark-mode .results-table td {
+      background: #23272f !important;
+      color: #ffe082 !important;
+    }
+    body.dark-mode .results-table tr:nth-child(even) td {
+      background: #181a20 !important;
+    }
+    body.dark-mode .btn {
+      background-color: #3949ab !important;
+      color: #ffe082 !important;
+    }
+    body.dark-mode .btn:hover {
+      background-color: #1a237e !important;
+    }
+    body.dark-mode .diagnosis-cell,
+    body.dark-mode .diagnosis-list li {
+      color: #ffe082 !important;
+    }
+    body.dark-mode .diagnosis-cell-empty {
+      color: #ffb300 !important;
+    }
+    /* Fix generator text and backgrounds in dark mode */
+    body.dark-mode .content,
+    body.dark-mode .content * {
+      color: #f7f7fa !important;
+      background: transparent !important;
+    }
+    body.dark-mode .header,
+    body.dark-mode .header * {
+      color: #ffe082 !important;
+      background: transparent !important;
+    }
+    body.dark-mode .file-upload,
+    body.dark-mode .file-upload * {
+      color: #f7f7fa !important;
+      background: #23272f !important;
+      border-color: #3949ab !important;
+    }
+    body.dark-mode .status,
+    body.dark-mode .error {
+      color: #ffe082 !important;
+    }
+    /* Remove white overlay in generator cards for dark mode */
+    body.dark-mode #aasandhaGen .generator-card::before,
+    body.dark-mode #foreignGen .generator-card::before {
+      background: rgba(30,32,40,0.93) !important;
+    }
+    /* Improve generator card readability in dark mode */
+body.dark-mode .container {
+  background: #23272f !important;
+  border-color: #3949ab !important;
+}
+
+body.dark-mode .header {
+  background: #23272f !important;
+  color: #ffe082 !important;
+  border-bottom: 2px solid #3949ab !important;
+}
+
+body.dark-mode .content {
+  background: transparent !important;
+  color: #f7f7fa !important;
+}
+
+body.dark-mode .file-upload {
+  background: #23272f !important;
+  border-color: #3949ab !important;
+}
+
+body.dark-mode .status,
+body.dark-mode .error,
+body.dark-mode .file-upload label {
+  color: #ffe082 !important;
+}
+
+body.dark-mode .results-table th {
+  background: #3949ab !important;
+  color: #ffe082 !important;
+}
+
+body.dark-mode .results-table td {
+  background: #23272f !important;
+  color: #ffe082 !important;
+}
+
+body.dark-mode .results-table tr:nth-child(even) td {
+  background: #181a20 !important;
+}
+
+/* Light mode: keep your original color */
+.made-by,
+.hope-msg {
+  color: #000000;
+}
+
+/* Dark mode: make them white for contrast */
+body.dark-mode .made-by,
+body.dark-mode .hope-msg {
+  color: #fff !important;
+}
+
+.topbar-container {
+  position: fixed;
+  top: 18px;
+  right: 32px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  background: rgba(255,255,255,0.85); /* Light background for light mode */
+  border-radius: 12px;
+  padding: 6px 18px 6px 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.08);
+  border: 1.5px solid #e0e0e0;
+}
+
+body.dark-mode .topbar-container {
+  background: rgba(40, 40, 50, 0.92) !important; /* Lighter dark for dark mode */
+  border: 1.5px solid #3949ab !important;
+  box-shadow: 0 2px 12px rgba(25, 118, 210, 0.18);
+}
+
+.theme-label {
+  font-size: 1.1rem;
+  font-weight: bold;
+  color: #333; /* Dark text for light mode */
+  user-select: none;
+  letter-spacing: 0.5px;
+  transition: color 0.2s;
+}
+body.dark-mode .theme-label {
+  color: #ffe082; /* Yellow for dark mode */
+}
+
+.theme-toggle-btn {
+  font-size: 1.8rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ffe082;
+  margin-right: 8px;
+}
+
+.credit {
+  color: #1976d2;
+  font-size: 1.1rem;
+  font-weight: 700;
+  margin-left: 10px;
+  user-select: none;
+}
+
+body.dark-mode .credit {
+  color: #ffe082 !important;
+}
+.duplicate-row {
+  background: #ff1744 !important;
+  color: #fff !important;
+  font-weight: bold;
+}
+.duplicate-warning {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin-bottom: 18px;
+  padding: 18px 24px;
+  background: #fffbe6;
+  color: #d32f2f;
+  border: 3px solid #ff1744;
+  border-radius: 12px;
+  font-size: 1.45rem;
+  font-weight: 900;
+  text-align: center;
+  box-shadow: 0 4px 24px rgba(255,23,68,0.13);
+  letter-spacing: 1px;
+  text-shadow: 0 2px 8px #fff2;
+}
+
+/* Even more visible in dark mode */
+body.dark-mode .duplicate-warning {
+  background: #2d1a1a;
+  color: #ff5252;
+  border-color: #ff5252;
+  box-shadow: 0 4px 24px rgba(255,82,82,0.18);
+}
+.results-table .duplicate-row td,
+body.dark-mode .results-table .duplicate-row td,
+body.dark-mode .results-table tr.duplicate-row td,
+body.dark-mode .duplicate-row td,
+.duplicate-row td {
+  background: #ff1744 !important;
+  color: #fff !important;
+  font-weight: bold !important;
+}
+  </style>
+</head>
+<body>
+  <div class="outer-container">
+    <button class="back-btn" id="backBtn" onclick="showSelection()" style="display:none;">
+      <svg viewBox="0 0 24 24"><path d="M15.41 7.41 14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg>
+      Go Back
+    </button>
+    <div class="main-card">
+      <!-- Selection Page -->
+      <div id="selectionPage">
+        <div class="selection-container">
+          <h1 class="intro-title">Prescription Details Generator</h1>
+          <div class="card-container">
+            <!-- Aasandha Generator Card -->
+            <div class="selection-card" onclick="showGenerator('aasandha')">
+              <div class="card-image" style="background-image: url('https://i.ibb.co/93mJ1bd8/Aasndha-1.png');"></div>
+              <div class="card-content">
+                <span class="version-tag">Local PDF</span>
+                <h2 class="card-title">Aasandha Generator</h2>
+                <p class="card-description">Generate prescription details from Aasandha PDFs for easy copying to spreadsheets.</p>
+                <button class="card-button">Launch Generator</button>
+              </div>
+            </div>
+            <!-- Foreign Generator Card -->
+            <div class="selection-card" onclick="showGenerator('foreign')">
+              <div class="card-image" style="background-image: url('https://i.ibb.co/204cpFwQ/Foreign-1.png');"></div>
+              <div class="card-content">
+                <span class="version-tag">OCR Images</span>
+                <h2 class="card-title">Foreign Generator</h2>
+                <p class="card-description">Extract prescription details from foreign medical records using image recognition.</p>
+                <button class="card-button">Launch Generator</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- Generator 1: Aasandha -->
+      <div id="aasandhaGen" class="generator-area" style="display:none">
+        <div class="generator-card">
+          <!-- ===== GENERATOR ONE STARTING POINT ===== -->
+          
+  
+  <title>Aasandha Prescription Extractor</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.min.js"></script>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
       padding: 20px;
-      border-radius: 8px;
-      border: 1px dashed var(--primary);
-      text-align: center;
+      margin: 0;
+      min-height: 100vh;
+      /* Medical background image */
+      background-image: url('https://th.bing.com/th/id/R.74010aa3bbee478d4dee3bd45c79bad4?rik=RyxapaOF5utzqA&pid=ImgRaw&r=0');
+      /* Replace above with the actual link of your image, or use 'background-image: url("https://phalko556.github.io/aasandha-extractor-images/medical-bg.jpg");' if you host it */
+      background-repeat: no-repeat;
+      background-size: cover;
+      background-attachment: fixed;
     }
-    
-    .file-input input {
-      margin-top: 10px;
-    }
-    
-    .preview-img { 
-      max-width: 100%;
-      margin: 15px 0;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      box-shadow: 0 3px 10px rgba(0,0,0,0.05);
-    }
-    
-    .loading { 
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      color: white;
-      padding: 15px;
-      border-radius: 8px;
-      text-align: center;
-      margin: 15px 0;
-      animation: pulse 1.5s infinite;
-    }
-    
-    @keyframes pulse {
-      0% { opacity: 0.8; }
-      50% { opacity: 1; }
-      100% { opacity: 0.8; }
-    }
-    
-    .results-table { 
-      width: 100%;
-      border-collapse: separate;
-      border-spacing: 0;
-      margin: 20px 0;
-      border-radius: 8px;
+    .container {
+      background: rgba(250,255,255,0.92);
+      border-radius: 18px;
       overflow: hidden;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      box-shadow: 0 0 25px 0 rgba(0,80,140,0.13);
+      max-width: 900px;
+      margin: 40px auto;
+      border: 1.5px solid #b3e0fc;
     }
-    
-    .results-table th, .results-table td { 
-      border: 1px solid var(--border);
-      padding: 12px 15px;
-      text-align: left;
-    }
-    
-    .results-table th { 
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      color: white;
-      font-weight: 500;
-      position: sticky;
-      top: 0;
-    }
-    
-    .results-table tr:nth-child(even) {
-      background-color: #f9fafc;
-    }
-    
-    .results-table tr:hover {
-      background-color: #f0f4ff;
-    }
-    
-    .button { 
-      background: linear-gradient(to right, var(--primary), var(--primary-light));
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      border-radius: 6px;
-      cursor: pointer;
-      font-size: 14px;
-      margin-right: 10px;
-      font-weight: 500;
-      transition: all 0.3s ease;
-      box-shadow: 0 4px 6px rgba(71, 118, 230, 0.15);
-    }
-    
-    .button:hover { 
-      transform: translateY(-2px);
-      box-shadow: 0 7px 14px rgba(71, 118, 230, 0.2);
-    }
-    
-    .button:active {
-      transform: translateY(1px);
-    }
-    
-    .button.secondary {
-      background: white;
-      color: var(--primary);
-      border: 1px solid var(--primary);
-      box-shadow: none;
-    }
-    
-    #autoFixBtn {
-      background: linear-gradient(to right, var(--secondary), #FF5E62);
-    }
-    
-    #autoFixBtn:hover {
-      background: linear-gradient(to right, #FF8C42, #FF5E62);
-    }
-    
-    .manual-edit { 
-      width: 100%;
-      height: 200px;
-      margin: 15px 0;
-      padding: 15px;
-      font-family: 'Consolas', monospace;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      background-color: #f9fafc;
-      line-height: 1.5;
-      font-size: 14px;
-    }
-    
-    .tsv-area { 
-      margin-top: 25px;
-      background: var(--bg-light);
-      padding: 20px;
-      border-radius: 8px;
-      border: 1px solid var(--border);
-    }
-    
-    #tsvOutput { 
-      width: 100%;
-      height: 150px;
-      margin-top: 15px;
-      font-family: 'Consolas', monospace;
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      padding: 15px;
-      background-color: white;
-      font-size: 14px;
-    }
-    
-    /* Status messages */
-    .success-message {
-      color: var(--success);
-      font-weight: bold;
-      padding: 10px;
-      border-left: 4px solid var(--success);
-      background-color: rgba(39, 174, 96, 0.1);
-      border-radius: 4px;
-    }
-    
-    .error-message {
-      color: var(--error);
-      font-weight: bold;
-      padding: 10px;
-      border-left: 4px solid var(--error);
-      background-color: rgba(231, 76, 60, 0.1);
-      border-radius: 4px;
-    }
-    
-    /* Add these new styles */
-    .copy-btn {
-      position: absolute;
-      top: 10px;
-      right: 10px;
-      background: linear-gradient(to right, var(--success), #43cea2);
-      color: white;
-      border: none;
-      border-radius: 4px;
-      padding: 8px 12px;
-      font-size: 14px;
-      cursor: pointer;
+    .header {
+      background: #1976d2;
+      color: #010102;
+      padding: 18px 28px;
       display: flex;
       align-items: center;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      z-index: 10;
+      gap: 10px;
+      border-bottom: 2px solid #e3f2fd;
     }
-    
-    .copy-btn i {
-      margin-right: 6px;
+    .header h1 {
+      margin: 0;
+      font-size: 1.6rem;
+      letter-spacing: 1px;
+      font-weight: 600;
     }
-    
-    .copy-btn:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+    .content {
+      padding: 30px 30px 35px 30px;
+      background: transparent;
     }
-    
-    .table-wrapper {
-      position: relative;
-      margin-top: 30px;
-    }
-    
-    .advanced-options {
-      margin-top: 30px;
-    }
-    
-    .advanced-toggle {
-      background: none;
-      color: var(--primary);
-      border: none;
-      font-size: 14px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      padding: 0;
-      margin-bottom: 10px;
-    }
-    
-    .advanced-toggle i {
-      margin-right: 5px;
-      transition: transform 0.3s;
-    }
-    
-    .advanced-toggle.open i {
-      transform: rotate(90deg);
-    }
-    
-    .advanced-content {
-      display: none;
-      border-top: 1px solid var(--border);
-      padding-top: 15px;
-    }
-    
-    /* Add tooltip for copy button */
-    .tooltip {
-      position: relative;
-    }
-    
-    .tooltip .tooltip-text {
-      visibility: hidden;
-      width: 120px;
-      background-color: #555;
-      color: #fff;
-      text-align: center;
-      border-radius: 6px;
-      padding: 5px;
-      position: absolute;
-      z-index: 1;
-      bottom: 125%;
-      left: 50%;
-      transform: translateX(-50%);
-      opacity: 0;
-      transition: opacity 0.3s;
-    }
-    
-    .tooltip:hover .tooltip-text {
-      visibility: visible;
-      opacity: 1;
-    }
-    
-    /* Add this new style for the instructions box */
-    .instructions-box {
-      background-color: #e3f2fd;
-      border-left: 4px solid var(--primary);
-      padding: 15px;
-      margin-bottom: 20px;
-      border-radius: 6px;
-    }
-    
-    .instructions-box h3 {
-      margin-top: 0;
-      color: var(--primary);
-    }
-    
-    .instructions-box ul {
-      padding-left: 20px;
-    }
-    
-    .instructions-box li {
-      margin-bottom: 8px;
-    }
-    
-    /* Improve table export button */
-    .table-export-btn {
-      display: none;
-      margin: 15px 0;
-      text-align: right;
-    }
-    
-    .screenshot-guide {
-      background-color: #f9f9f9;
-      border: 1px solid #ddd;
+    .file-upload {
+      background-color: #f7fbfe;
+      padding: 18px;
       border-radius: 8px;
-      padding: 15px;
+      margin-bottom: 18px;
+      border: 1.5px dashed #87ceeb;
+    }
+    .file-upload-input {
+      margin: 10px 0;
+      width: 100%;
+    }
+    .status { color: #010102; font-style: italic; margin: 10px 0;}
+    .error { color: #010102; }
+    .results-table {
+      width: 100%;
+      border-collapse: collapse;
       margin-top: 20px;
+      background: #010102;
+      border-radius: 10px;
+      overflow: hidden;
     }
-    
-    .screenshot-guide h3 {
-      margin-top: 0;
-      font-size: 18px;
-      color: var(--primary);
+    .results-table th {
+      background-color: #7dd3fc;
+      color: #145570;
+      padding: 11px;
+      text-align: left;
+      letter-spacing: 0.5px;
+      font-weight: 600;
+      border-bottom: 2.5px solid #b3e0fc;
     }
-    
-    .screenshot-methods {
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: space-between;
-    }
-    
-    .screenshot-method {
-      flex: 1 1 30%;
-      margin-right: 10px;
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
+    .results-table td {
       padding: 10px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      border-bottom: 1px solid #b3e0fc;
+      vertical-align: top;
+      color: #145570;
+      background: #fafdff;
     }
-    
-    .screenshot-method h4 {
-      margin-top: 0;
-      font-size: 16px;
-      color: var(--primary);
+    .results-table tr:nth-child(even) td {
+      background: #e9f7fb;
     }
-    
-    .screenshot-method ul {
-      padding-left: 20px;
-      margin: 10px 0 0 0;
-    }
-    
-    .screenshot-method li {
-      margin-bottom: 8px;
-      position: relative;
-      padding-left: 20px;
-    }
-    
-    .screenshot-method li:before {
-      content: '✔';
-      position: absolute;
-      left: 0;
-      top: 2px;
-      color: var(--success);
-      font-weight: bold;
-    }
-    
-    .screenshot-tip {
-      margin-top: 15px;
-      font-style: italic;
-      color: #555;
-      display: flex;
+    .btn {
+      padding: 8px 14px;
+      background-color: #1976d2;
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      border-radius: 5px;
+      display: inline-flex;
       align-items: center;
+      gap: 5px;
+      font-weight: 500;
+      font-size: 1rem;
+      transition: background 0.2s;
     }
-    
-    .screenshot-tip i {
-      margin-right: 8px;
-      color: var(--primary);
+    .btn:hover { background-color: #1565c0; }
+    .btn-copy-all { background-color: #30b3c7; margin-left: 10px; }
+    .btn-copy-all:hover { background-color: #0ea5e9; }
+    .hidden { display: none; }
+    .buttons { margin-top: 15px;}
+    .diagnosis-cell { font-weight: bold; color: #045d6b; }
+    .diagnosis-list { margin: 0; padding: 0; list-style: none; color: #045d6b; }
+    .diagnosis-list li { margin-bottom: 2px; word-break: break-word; color: #155fa0; font-weight: normal;}
+    .diagnosis-cell-empty { color: #d32f2f; font-weight: bold; }
+    /* Responsive */
+    @media (max-width: 600px){
+      .container { margin: 0; border-radius: 0; }
+      .content { padding: 12px; }
     }
 
-    .red-highlight {
-      color: #e74c3c;
-      font-weight: bold;
-    }
-
-    .important-note {
-      margin-top: 10px;
-      background-color: #fff3f3;
-      border-left: 4px solid #e74c3c;
-      padding: 10px;
-      border-radius: 4px;
-    }
-
-    .recommended-tag {
-      background-color: #d1e7dd;
-      color: #0f5132;
-      padding: 2px 6px;
-      border-radius: 4px;
-      font-size: 12px;
-      margin-left: 5px;
-    }
+    .done-row {
+  background: #d0f5d8 !important;
+  opacity: 0.7;
+}
   </style>
 </head>
 <body>
   <div class="container">
-    <h1>Table OCR Extractor</h1>
-    
-    <!-- Add instructions box -->
-    <div class="instructions-box">
-      <h3><i class="fas fa-info-circle"></i> How to Use This Tool</h3>
-      <ul>
-        <li><strong>Upload a screenshot</strong> of your table - use screen capture tools like Snipping Tool or Print Screen()</li>
-        <li><strong>Do NOT upload photos taken with a camera</strong> - angles, lighting and quality will reduce accuracy</li>
-        <li>For best results, ensure the table text is <strong>clear and readable</strong></li>
-        <li>After processing, click the <strong>"Export to Excel"</strong> button to copy the data</li>
-        <li class="important-note">
-          <span class="red-highlight"><i class="fas fa-exclamation-circle"></i> <strong>IMPORTANT:</strong> Make sure the image type is PNG before uploading!</span>
+    <div class="header">
+      <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+        <polyline points="14 2 14 8 20 8"></polyline>
+        <line x1="16" y1="13" x2="8" y2="13"></line>
+        <line x1="16" y1="17" x2="8" y2="17"></line>
+        <polyline points="10 9 9 9 8 9"></polyline>
+      </svg>
+      <h1>Aasandha Prescription Details Generator</h1>
+    </div>
+    <div class="content">
+    <div style="border: 2px solid #1976d2; border-radius: 10px; padding: 18px 22px; margin-bottom: 22px; background: none;">
+      <div style="font-size:1.22em; font-weight:bold; color:#1976d2; margin-bottom:10px;">
+        How to use:
+      </div>
+      <ul style="color: #000000; font-weight: bold; padding-left: 22px; margin: 0 0 10px 0; font-size: 1.18em;">
+        <li>📥 <b>Simply upload one or more Aasandha prescriptions</b> and let the generator do the work for you, after that simply press copy table data and paste it!</li>
+        <li>👶 <b>For patients under 1 year old</b>, please <u>double-check and enter the age manually</u> 
+        <li>✅ <b>Use the "Mark as Done" button</b> to keep track of completed prescriptions.<br>
+          <span style="font-weight: bold; color: #b71c1c;">(Note: Marked status is saved until you refresh or reopen this page.)</span>
         </li>
       </ul>
     </div>
-    
-    <!-- Screenshot guide section -->
-    <div class="instructions-box screenshot-guide">
-      <h3><i class="fas fa-camera"></i> How to Take a Screenshot</h3>
-      
-      <div class="screenshot-method">
-        <h4><i class="fab fa-windows"></i> Windows 10 & 11 Screenshot Methods</h4>
-        <ul>
-          <li><strong>Snipping Tool (Highly Recommended):</strong> Press <kbd>Win</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, then select the table area <span class="recommended-tag">Best Option - Auto-saves as PNG</span></li>
-          <li><strong>Full Screen:</strong> Press <kbd>Win</kbd> + <kbd>PrtScn</kbd> or <kbd>Win</kbd> + <kbd>Fn</kbd> + <kbd>PrtScn</kbd> on Computer</li>
-          <li><strong>After taking a screenshot:</strong> Paste into Paint (Ctrl+V) and save as PNG before uploading</li>
         </ul>
-      </div>
-
-      <div class="screenshot-tip">
-        
-        <i class="fas fa-lightbulb"></i> <strong>Tip:</strong> For best results, capture only the table area and make sure text is clearly visible.
-      </div>
-    </div>
-    
-    <div class="file-input">
-      <label for="imgInput">Upload a screenshot of your table:</label><br>
-      <input type="file" id="imgInput" class="file-input" accept="image/*">
-    </div>
-    
-    <img id="previewImg" class="preview-img" style="display:none;">
-    <div id="statusArea"></div>
-    
-    <!-- Move the export button outside the table wrapper and improve it -->
-    <div id="tableExportBtn" class="table-export-btn">
-      <button class="button tooltip">
-        <i class="fas fa-file-excel"></i> Export to Excel
-        <span class="tooltip-text">Copy data to clipboard for Excel</span>
-      </button>
-    </div>
-    
-    <!-- Add table wrapper -->
-    <div class="table-wrapper">
-      <div id="results"></div>
-    </div>
-    
-    <!-- Advanced options section that's hidden by default -->
-    <div class="advanced-options">
-      <button id="advancedToggle" class="advanced-toggle">
-        <i class="fas fa-chevron-right"></i> Advanced Options
-      </button>
-      
-      <div id="advancedContent" class="advanced-content">
-        <div id="editArea" style="display:none;">
-          <h3>Edit OCR Text (if needed)</h3>
-          <textarea id="ocrText" class="manual-edit"></textarea>
-          <div style="margin-top: 10px;">
-            <button id="parseBtn" class="button">Process Text</button>
-            <button id="autoFixBtn" class="button">Auto-Fix Common Issues</button>
-          </div>
         </div>
-        
-        <div id="tsvArea" class="tsv-area" style="display:none;">
-          <h3>Copy & Paste to Excel</h3>
-          <button id="copyBtn" class="button">Copy to Clipboard</button>
-          <textarea id="tsvOutput" readonly></textarea>
+      <p class="made-by">&nbsp;&nbsp;&nbsp;Made by Faalih</p>
+<p class="hope-msg">&nbsp;&nbsp;&nbsp;&nbsp;Hope this helps 😉!!</p>
+      <p style="color:#ff0400; font-weight:bold;">&nbsp;&nbsp;If any bugs within the generator please infrom me I will fix it as soon as i can Insha Allah!</p>
+      <div class="file-upload">
+        <label for="pdf-upload">Select PDF files:</label>
+        <input type="file" id="pdf-upload" class="file-upload-input" accept=".pdf" multiple />
+        <div class="status" id="status">Ready to upload</div>
+      </div>
+      <div id="output-container" class="hidden">
+        <h3>Extracted Information</h3>
+        <div class="buttons">
+          <button id="copyTableBtn" class="btn">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2-2v1"></path>
+            </svg>
+            Copy Table Data
+          <button id="markAllDoneBtn" class="btn" style="background:#43a047;margin-left:10px;">
+  ✔️ Mark All as Done
+</button>
         </div>
+        <!-- Move the warning here, above the table -->
+        <div id="duplicateWarning" class="duplicate-warning" style="display:none;">
+          ⚠️ Repeated prescription(s) detected! Please remove duplicates before copying.
+        </div>
+        <table class="results-table" id="results-table">
+          <thead>
+            <tr>
+              <th>ID/PP #</th>
+              <th>Age</th>
+              <th>Sex</th>
+              <th>Diagnoses</th>
+              <th>Done</th>
+            </tr>
+          </thead>
+          <tbody id="results-body">
+            <!-- Results will be inserted here -->
+          </tbody>
+        </table>
       </div>
     </div>
   </div>
-  
   <script>
-    // Elements
-    const imgInput = document.getElementById('imgInput');
-    const previewImg = document.getElementById('previewImg');
-    const statusArea = document.getElementById('statusArea');
-    const results = document.getElementById('results');
-    const editArea = document.getElementById('editArea');
-    const ocrText = document.getElementById('ocrText');
-    const parseBtn = document.getElementById('parseBtn');
-    const autoFixBtn = document.getElementById('autoFixBtn');
-    const tsvArea = document.getElementById('tsvArea');
-    const copyBtn = document.getElementById('copyBtn');
-    const tsvOutput = document.getElementById('tsvOutput');
-    const tableExportBtn = document.getElementById('tableExportBtn');
-    
-    // Column definitions
-    const HEADERS = [
-      "TRANSACTION NO", "TRANSACTION", "TRANSACTION DATE", "TYPE", "AMOUNT",
-      "CREDITOR AMOUNT", "PATIENT AMOUNT", "ACCOUNT CODE", "ACCOUNT NAME"
-    ];
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.14.305/pdf.worker.min.js';
+    const status = document.getElementById('status');
+    const outputContainer = document.getElementById('output-container');
+    const resultsBody = document.getElementById('results-body');
+    const copyTableBtn = document.getElementById('copyTableBtn');
+    const copyDiagnosesBtn = document.getElementById('copyDiagnosesBtn');
+    const pdfUpload = document.getElementById('pdf-upload');
+    let allResults = [];
 
-    // Helper function to format a number to 2 decimal places
-    function roundTo2(val) {
-      if (!val || val === "") return "";
-      
-      // Remove non-numeric characters except decimal point
-      const cleanVal = val.toString().replace(/[^\d.-]/g, '');
-      const num = parseFloat(cleanVal);
-      
-      if (isNaN(num)) return "";
-      return num.toFixed(2); // Changed from toFixed(3) to toFixed(2)
-    }
+    pdfUpload.addEventListener('change', async function(e) {
+  const files = Array.from(e.target.files);
+  if (files.length === 0) return;
+      status.innerHTML = `Processing ${files.length} PDF(s)... <span class="loading"></span>`;
+      status.classList.remove('error');
+      resetOutput();
+      allResults = [];
+      try {
+        for (let i = 0; i < files.length; i++) {
+          status.innerHTML = `Processing ${i+1}/${files.length}: ${files[i].name}... <span class="loading"></span>`;
+          await processSinglePdf(files[i]);
+        }
+        status.textContent = `Successfully processed ${files.length} PDF(s)`;
+        outputContainer.classList.remove('hidden');
+        document.getElementById('markAllDoneBtn').disabled = false;
+document.getElementById('markAllDoneBtn').innerHTML = '✔️ Mark All as Done';
+renderTable();
+      } catch (err) {
+        status.innerHTML = `Error: ${err.message}`;
+        status.classList.add('error');
+        console.error('Processing error:', err);
+      }
+    });
 
-    // Preprocess the image before OCR to improve results
-    function preprocessImage(file, scale = 2) {
-      return new Promise((resolve) => {
-        const img = new Image();
-        img.onload = function() {
-          // Create canvas and upscale
-          const canvas = document.createElement('canvas');
-          canvas.width = img.width * scale;
-          canvas.height = img.height * scale;
-          const ctx = canvas.getContext('2d');
-          ctx.imageSmoothingEnabled = false;
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-          
-          // Get image data for processing
-          let imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-          let data = imageData.data;
-          
-          // Enhance contrast and convert to grayscale
-          for (let i = 0; i < data.length; i += 4) {
-            let avg = (data[i] + data[i+1] + data[i+2]) / 3;
-            // Increase contrast
-            avg = avg < 128 ? avg * 0.8 : 255 - (255 - avg) * 0.8;
-            data[i] = data[i+1] = data[i+2] = avg;
+    async function processSinglePdf(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = async function() {
+          try {
+            const typedarray = new Uint8Array(this.result);
+            const pdf = await pdfjsLib.getDocument(typedarray).promise;
+            let textContent = '';
+            for (let i = 1; i <= pdf.numPages; i++) {
+              const page = await pdf.getPage(i);
+              const content = await page.getTextContent();
+              const strings = content.items.map(item => item.str).join('\n');
+              textContent += strings + '\n';
+            }
+            const extractedData = extractInfo(textContent, file.name);
+            allResults.push(extractedData);
+            resolve();
+          } catch (err) {
+            reject(new Error(`Failed to process ${file.name}: ${err.message}`));
           }
-          ctx.putImageData(imageData, 0, 0);
-          
-          canvas.toBlob(blob => {
-            resolve(URL.createObjectURL(blob));
-          }, 'image/png');
         };
-        img.src = URL.createObjectURL(file);
+        reader.onerror = function() {
+          reject(new Error(`Failed to read file: ${file.name}`));
+        };
+        reader.readAsArrayBuffer(file);
       });
     }
 
-    // Try multiple OCR approaches until we get good results
-    async function tryOcrWithFallbacks(url) {
-      // Try different page segmentation modes
-      const modes = [6, 4, 11, 12];
-      for (let psm of modes) {
-        try {
-          const { data: { text } } = await Tesseract.recognize(url, 'eng', { 
-            tessedit_pageseg_mode: psm 
-          });
-          if (text && text.match(/\d{6,}/)) return text;
-        } catch (e) {
-          // Just try the next mode
-        }
-      }
-      
-      // Fall back to basic mode if all else fails
-      try {
-        const result = await Tesseract.recognize(url, 'eng');
-        return result.data.text;
-      } catch (error) {
-        throw new Error("OCR processing failed");
-      }
+    function resetOutput() {
+      resultsBody.innerHTML = '';
+      outputContainer.classList.add('hidden');
     }
 
-    // Auto-fix common OCR issues in table text
-    function autoFixOcrText(text) {
-      // Replace common OCR mistakes
-      let fixed = text
-        // Fix spacing issues
-        .replace(/\s{2,}/g, ' ')
-        
-        // Fix headers
-        .replace(/TRANSACT[I1]ON\s*NO/gi, 'TRANSACTION NO')
-        .replace(/TRANSACT[I1]ON\s*DATE/gi, 'TRANSACTION DATE')
-        .replace(/CRED[I1]TOR\s*AMOUNT/gi, 'CREDITOR AMOUNT')
-        .replace(/PAT[I1]ENT\s*AMOUNT/gi, 'PATIENT AMOUNT')
-        .replace(/ACCOUNT\s*CODE/gi, 'ACCOUNT CODE')
-        .replace(/ACCOUNT\s*NAME/gi, 'ACCOUNT NAME')
-        
-        // Fix common word mistakes
-        .replace(/CRED[I1]T/gi, 'CREDIT')
-        .replace(/DEB[I1]T/gi, 'DEBIT')
-        .replace(/ME[MN][O0]/gi, 'MEMO')
-        
-        // Fix account codes
-        .replace(/ARD[O0]T/g, 'ARDOT')
-        .replace(/ARD[O0]1/g, 'ARD01')
-        .replace(/AR[O0][O0]1/g, 'AR001')
-        
-        // Fix AASANDHA PVT LTD
-        .replace(/[A4][A4]S[A4]NDH[A4]/g, 'AASANDHA')
-        .replace(/[PN]VT\s*LTD/gi, 'PVT LTD');
-      
-      return fixed;
-    }
+    // Extract ONLY the text(s) under the "Diagnosis" field in the DIAGNOSES section
+    function extractInfo(text, filename) {
+      const result = {
+        filename: filename,
+        idCard: 'Not found',
+        age: 'Not found',
+        sex: 'Not found',
+        diagnoses: []
+      };
 
-    // Extract table from messy OCR text - the most robust version
-    function parseTable(text) {
-      const lines = text.split('\n').map(l => l.trim()).filter(Boolean);
-      
-      // Try to find the header line
-      let headerIdx = -1;
-      for (let i = 0; i < lines.length; i++) {
-        if (lines[i].toUpperCase().includes('TRANSACTION') && 
-            lines[i].toUpperCase().includes('AMOUNT')) {
-          headerIdx = i;
-          break;
-        }
+      // ID extraction
+      const idMatch = text.match(/\b([AaYyZzXx]\d{6,})\b/);
+      if (idMatch) result.idCard = idMatch[1].toUpperCase();
+
+      // Age extraction
+      const ageMatch = text.match(/\b(?:Age|Years?)\s*[:=]?\s*(\d+)/i);
+      if (ageMatch) result.age = ageMatch[1];
+
+      // Sex extraction
+      const sexMatch = text.match(/\b(?:Sex|Gender)\s*[:=]?\s*(Male|Female|M|F|Man|Woman)\b/i);
+      if (sexMatch) {
+        const sex = sexMatch[1].toUpperCase();
+        result.sex = sex === 'MAN' ? 'M' : sex === 'WOMAN' ? 'F' : sex.charAt(0);
       }
+
+      // Find DIAGNOSES section with improved multi-line handling
+      const diagBlockMatch = text.match(
+        /DIAGNOSES?\s*\n([\s\S]*?)(?:\n\s*(MEDICATION|TREATMENT|ADVICE|CONSUMABLE|PRESCRIPTION|INSTRUCTIONS|NOTES?|$))/i
+      );
       
-      // If header not found, look for first data row
-      if (headerIdx === -1) {
-        for (let i = 0; i < lines.length; i++) {
-          if (/^\d{6,}/.test(lines[i])) {
-            headerIdx = i - 1;
-            break;
+      if (diagBlockMatch) {
+        // Get just the diagnoses block
+        const diagBlock = diagBlockMatch[1];
+        
+        // Simplified extraction approach:
+        // 1. First look for ICD code followed by diagnosis (most reliable pattern)
+        const diagnoses = [];
+        const icdPattern = /([A-Z][0-9]{1,3}(\.[0-9]+)?)\s+\[?(?:Provisional|Final|Principal|Principle|Primary)?\]?\s*\n?\s*([^R][^\n]+?)(?:\n|$)/gi;
+        
+        let icdMatch;
+        while ((icdMatch = icdPattern.exec(diagBlock)) !== null) {
+          // Extract just the diagnosis name, not the ICD code or tag
+          let diagnosisText = icdMatch[3].trim();
+          
+          // Clean up the diagnosis text
+          diagnosisText = diagnosisText
+            .replace(/\[(Provisional|Final|Principal|Principle|Primary)\]/gi, '')
+            .replace(/^Kidney\s+RENAL CALCULI\?.+$/i, 'Kidney')
+            .trim();
+          
+          // Only add if it's an actual diagnosis (not a remark or empty)
+          if (diagnosisText && 
+              diagnosisText.length > 1 && 
+              !diagnosisText.toLowerCase().includes('remark') && 
+              !/^(remark|now no active)/i.test(diagnosisText)) {
+            diagnoses.push(diagnosisText);
           }
         }
-      }
-      
-      if (headerIdx === -1) headerIdx = 0;
-      
-      const rows = [];
-      let tsvRows = [HEADERS.join('\t')];
-      let lastAccountCode = "AR001";
-      
-      // Process data rows
-      for (let i = headerIdx + 1; i < lines.length; i++) {
-        const line = lines[i].trim();
         
-        // Skip non-data rows (must start with 6+ digit transaction number)
-        if (!line.match(/^\d{6,}/)) continue;
-        
-        // Clean up and split the line
-        const parts = line.replace(/\|/g, ' ').replace(/\s{2,}/g, ' ').trim().split(' ');
-        if (parts.length < 5) continue;
-        
-        // Extract transaction number and type
-        const txNo = parts[0].replace(/[^0-9]/g, '');
-        if (txNo.length < 6) continue; // Invalid transaction number
-        
-        // Transaction type is usually the second part (MEMO)
-        let transaction = 'MEMO'; // Always use MEMO for these transactions
-        
-        // Look for date pattern
-        let dateTimeStr = '';
-        let dateFound = false;
-        for (let j = 2; j < parts.length; j++) {
-          if (parts[j].match(/^\d{1,2}\/\d{1,2}\/\d{4}$/)) {
-            dateTimeStr = parts[j];
-            // Look for time after date
-            if (j+1 < parts.length && parts[j+1].match(/^\d{1,2}:\d{2}$/)) {
-              dateTimeStr += " " + parts[j+1];
-              // Look for AM/PM after time
-              if (j+2 < parts.length && (parts[j+2].toUpperCase() === 'PM' || parts[j+2].toUpperCase() === 'AM')) {
-                dateTimeStr += " " + parts[j+2].toUpperCase();
+        // If no diagnoses found with the ICD pattern, try a simpler approach
+        if (diagnoses.length === 0) {
+          // Check for Kidney with description (special case)
+          if (/\[?(?:Provisional|Final|Principal|Principle|Primary)?\]?\s*\n?\s*Kidney/i.test(diagBlock) &&
+              !diagBlock.toLowerCase().includes("chronic kidney disease")) {
+            diagnoses.push("Kidney");
+          }
+          
+          // Look for other common diagnoses
+          if (/Essential\s+\(primary\)\s+hypertension/i.test(diagBlock)) {
+            diagnoses.push("Essential (primary) hypertension");
+          }
+          
+          // Try looking for diagnosis in a table format
+          const diagLines = diagBlock.split('\n');
+          const diagHeaderIndex = diagLines.findIndex(line => 
+            /diagnosis/i.test(line) && !/remark|code/i.test(line)
+          );
+          
+          if (diagHeaderIndex >= 0) {
+            // Process each line after header that doesn't look like a header or separator
+            for (let i = diagHeaderIndex + 1; i < diagLines.length; i++) {
+              const line = diagLines[i].trim();
+              if (!line || /^[-=]+$/.test(line) || 
+                  /^(ICD|CODE|REMARK|DIAGNOSIS|Remark)/i.test(line) ||
+                  /^[A-Z][0-9]{1,3}(\.[0-9]+)?$/.test(line)) {
+                continue;
+              }
+              
+              // Clean up and add the diagnosis
+              const cleanedDiag = line
+                .replace(/\[(Provisional|Final|Principal|Principle|Primary)\]/gi, '')
+                .trim();
+                
+              if (cleanedDiag && cleanedDiag.length > 1) {
+                diagnoses.push(cleanedDiag);
               }
             }
-            dateFound = true;
-            break;
           }
         }
         
-        // Default date if not found
-        if (!dateFound) {
-          dateTimeStr = '5/29/2025 4:00 PM';
-        }
-        
-        // Fix common OCR time errors
-        if (dateTimeStr.includes('4:37')) {
-          dateTimeStr = dateTimeStr.replace('4:37', '4:27');
-        }
-        
-        // Replace any bracketed transaction with MEMO
-        if (transaction.startsWith('[') || transaction.includes('ENO') || transaction.includes('ENS')) {
-          transaction = 'MEMO';
-        }
-        
-        // Find transaction type (CREDIT/DEBIT)
-        let type = 'CREDIT'; // Default
-        for (let j = 2; j < parts.length; j++) {
-          if (parts[j].toUpperCase().includes('CRED')) {
-            type = 'CREDIT';
-            break;
-          }
-          if (parts[j].toUpperCase().includes('DEB')) {
-            type = 'DEBIT';
-            break;
-          }
-        }
-        
-        // Extract amounts (look for numbers with decimal points)
-        const amounts = [];
-        for (let j = 0; j < parts.length; j++) {
-          const cleaned = parts[j].replace(/[^0-9.]/g, '');
-          if (cleaned && cleaned.includes('.') && !isNaN(parseFloat(cleaned))) {
-            amounts.push(cleaned);
-          }
-        }
-        
-        // If no amounts found with decimals, look for any numbers
-        if (amounts.length === 0) {
-          const allNumbers = line.match(/\d+(\.\d+)?/g) || [];
-          for (const num of allNumbers) {
-            if (num.length >= 2 && num !== txNo) {
-              amounts.push(num);
-            }
-          }
-        }
-        
-        // Ensure we have three amounts
-        while (amounts.length < 3) {
-          if (amounts.length === 0) {
-            amounts.push('0.00');       // Changed from '0.000' to '0.00'
-          } else if (amounts.length === 1) {
-            amounts.push(amounts[0]);
-          } else {
-            amounts.push('0.00');       // Changed from '0.000' to '0.00'
-          }
-        }
-        
-        // Format amounts - always use first amount for both amount and creditor amount
-        const formattedAmounts = [
-          roundTo2(amounts[0]),       // Changed from roundTo3 to roundTo2
-          roundTo2(amounts[0]),       // Changed from roundTo3 to roundTo2
-          "0.00"                      // Changed from "0.000" to "0.00"
-        ];
-        
-        // Build the row
-        const row = [
-          txNo,
-          transaction,
-          dateTimeStr,
-          type,
-          formattedAmounts[0], 
-          formattedAmounts[1],
-          formattedAmounts[2],
-          "AR001",  // Always use AR001 as account code
-          "AASANDHA PVT LTD"  // Always use this account name
-        ];
-        
-        rows.push(row);
-        tsvRows.push(row.join('\t'));
+        // Set the final diagnoses list, ensuring no duplicates
+        result.diagnoses = [...new Set(diagnoses)];
       }
       
-      return {
-        rows: rows.length > 0 ? rows : null,
-        tsv: tsvRows.join('\n')
-      };
+      return result;
     }
 
-    // Generate HTML table
-    function generateTable(headers, rows) {
-      if (!rows || rows.length === 0) {
-        return '<div style="color:red;font-weight:bold;">No data could be extracted from the OCR text.</div>';
-      }
-      
-      let tableHtml = '<table class="results-table"><tr>';
-      
-      // Create table headers
-      headers.forEach(header => {
-        tableHtml += `<th>${header}</th>`;
-      });
-      
-      tableHtml += '</tr>';
-      
-      // Create table rows
-      rows.forEach(row => {
-        tableHtml += '<tr>';
-        row.forEach((cell, index) => {
-          tableHtml += `<td>${cell}</td>`;
-        });
-        tableHtml += '</tr>';
-      });
-      
-      tableHtml += '</table>';
-      return tableHtml;
-    }
+    // Diagnoses as plain vertical list (no numbers, no bullets)
 
-    // Process the image
-    async function processImage(imageUrl) {
+    copyTableBtn.addEventListener('click', function() {
+      const allData = allResults.map(result =>
+        `${result.idCard}\t${result.age}\t${result.sex}\t${result.diagnoses.join('; ')}`
+      ).join('\n');
+      navigator.clipboard.writeText(allData).then(function() {
+        const originalText = this.innerHTML;
+        this.innerHTML = 'Table Data Copied!';
+        setTimeout(() => { this.innerHTML = originalText; }, 2000);
+      }.bind(this));
+    });
+
+// Removed duplicate declaration and event listener for copyDiagnosesBtn to prevent redeclaration error.
+
+document.addEventListener('DOMContentLoaded', function() {
+  const copyDiagnosesBtn = document.getElementById('copyDiagnosesBtn');
+  if (copyDiagnosesBtn) {
+    copyDiagnosesBtn.addEventListener('click', function() {
+      const allDiagnoses = [];
+      allResults.forEach(result => { allDiagnoses.push(...result.diagnoses); });
+      const uniqueDiagnoses = [...new Set(allDiagnoses)];
+      navigator.clipboard.writeText(uniqueDiagnoses.join('\n')).then(() => {
+        const originalText = this.innerHTML;
+        this.innerHTML = 'Diagnoses Copied!';
+        setTimeout(() => { this.innerHTML = originalText; }, 2000);
+      });
+    });
+  }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+  const markAllBtn = document.getElementById('markAllDoneBtn');
+  if (markAllBtn) {
+    markAllBtn.onclick = function() {
+      const ids = allResults.map(r => r.idCard);
+      sessionStorage.setItem('seenIds', JSON.stringify(ids));
+      renderTable();
+    };
+  }
+});
+
+    function renderTable() {
+  resultsBody.innerHTML = '';
+
+  // Always declare and initialize seenIds at the top!
+  let seenIds = [];
+  try {
+    seenIds = JSON.parse(sessionStorage.getItem('seenIds')) || [];
+  } catch (e) {
+    seenIds = [];
+  }
+
+  // Count occurrences of each ID
+  let idCounts = {};
+  allResults.forEach(r => {
+    if (r.idCard && r.idCard !== "Not found") {
+      idCounts[r.idCard] = (idCounts[r.idCard] || 0) + 1;
+    }
+  });
+
+  let hasDuplicate = false;
+
+  allResults.forEach((data, idx) => {
+    const row = document.createElement('tr');
+
+    // ID
+    const idCell = document.createElement('td');
+    idCell.textContent = data.idCard;
+    row.appendChild(idCell);
+
+    // Age
+    const ageCell = document.createElement('td');
+    ageCell.textContent = data.age;
+    row.appendChild(ageCell);
+
+    // Sex
+    const sexCell = document.createElement('td');
+    sexCell.textContent = data.sex;
+    row.appendChild(sexCell);
+
+    // Diagnoses
+    const diagnosisCell = document.createElement('td');
+    if (data.diagnoses && data.diagnoses.length > 0) {
+      diagnosisCell.innerHTML = data.diagnoses.map(d => `<div>${d}</div>`).join('');
+    } else {
+      diagnosisCell.textContent = 'No diagnosis found';
+    }
+    row.appendChild(diagnosisCell);
+
+    // Actions cell
+    const actionCell = document.createElement('td');
+
+    // Copy button
+    const copyBtn = document.createElement('button');
+    copyBtn.className = 'btn copy-row-btn';
+    copyBtn.style.marginRight = '12px';
+    copyBtn.textContent = 'Copy';
+    copyBtn.onclick = function() {
+      const dataToCopy = `${data.idCard}\t${data.age}\t${data.sex}\t${data.diagnoses.join('; ')}`;
+      navigator.clipboard.writeText(dataToCopy);
+      copyBtn.textContent = 'Copied!';
+      setTimeout(() => { copyBtn.textContent = 'Copy'; }, 1500);
+    };
+    actionCell.appendChild(copyBtn);
+
+    // Mark as Seen button
+    const tickBtn = document.createElement('button');
+    tickBtn.className = 'btn';
+    const isSeen = seenIds.includes(data.idCard);
+    tickBtn.textContent = isSeen ? '✔️ Marked' : '✅ Mark as Seen';
+    tickBtn.disabled = isSeen;
+    tickBtn.style.backgroundColor = isSeen ? '#4caf50' : '';
+    if (isSeen) row.classList.add('done-row');
+
+    tickBtn.onclick = function() {
+      let seenIds = [];
       try {
-        statusArea.innerHTML = '<div class="loading">Processing with OCR...</div>';
-        
-        // Preprocess and OCR
-        const ocrResult = await tryOcrWithFallbacks(imageUrl);
-        ocrText.value = ocrResult;
-        editArea.style.display = 'block';
-        
-        // Parse the table
-        const { rows, tsv } = parseTable(ocrResult);
-        
-        if (rows && rows.length > 0) {
-          results.innerHTML = generateTable(HEADERS, rows);
-          tsvOutput.value = tsv;
-          tsvArea.style.display = 'block';
-          // Show export button
-          tableExportBtn.style.display = 'block';
-          statusArea.innerHTML = '<div class="success-message">✓ Table extracted successfully!</div>';
-        } else {
-          results.innerHTML = '<div class="error-message">Could not extract table data. Try clicking "Auto-Fix Common Issues".</div>';
-          tableExportBtn.style.display = 'none';
-          statusArea.innerHTML = '';
-        }
-      } catch (error) {
-        statusArea.innerHTML = '';
-        tableExportBtn.style.display = 'none';
-        results.innerHTML = `<div class="error-message">Error: ${error.message}</div>`;
+        seenIds = JSON.parse(sessionStorage.getItem('seenIds') || '[]');
+      } catch (e) { seenIds = []; }
+      if (!seenIds.includes(data.idCard)) {
+        seenIds.push(data.idCard);
+        sessionStorage.setItem('seenIds', JSON.stringify(seenIds));
+        renderTable();
       }
+    };
+    actionCell.appendChild(tickBtn);
+
+    // Highlight duplicate rows and show Remove button
+    if (data.idCard && data.idCard !== "Not found" && idCounts[data.idCard] > 1) {
+      row.classList.add('duplicate-row');
+      hasDuplicate = true;
+
+      // Add Remove button for duplicates
+      const removeBtn = document.createElement('button');
+      removeBtn.className = 'btn';
+      removeBtn.style.marginLeft = '12px';
+      removeBtn.style.background = '#fff';
+      removeBtn.style.color = '#ff1744';
+      removeBtn.style.fontWeight = 'bold';
+      removeBtn.textContent = 'Remove';
+      removeBtn.onclick = function() {
+        allResults.splice(idx, 1);
+        renderTable();
+      };
+      actionCell.appendChild(removeBtn);
     }
 
-    // Advanced options toggle
-    const advancedToggle = document.getElementById('advancedToggle');
-    const advancedContent = document.getElementById('advancedContent');
-    
-    advancedToggle.addEventListener('click', function() {
-      if (advancedContent.style.display === 'block') {
-        advancedContent.style.display = 'none';
-        this.classList.remove('open');
-      } else {
-        advancedContent.style.display = 'block';
-        this.classList.add('open');
-      }
-    });
-    
-    // Table copy button functionality
-    tableExportBtn.querySelector('button').addEventListener('click', function() {
-      if (tsvOutput.value) {
-        // Create a temporary textarea if needed
-        const tempTextarea = document.createElement('textarea');
-        tempTextarea.value = tsvOutput.value;
-        document.body.appendChild(tempTextarea);
-        tempTextarea.select();
-        
-        // Try the modern clipboard API first
-        try {
-          navigator.clipboard.writeText(tsvOutput.value).then(() => {
-            showCopyFeedback();
-          });
-        } catch (e) {
-          // Fall back to execCommand
-          document.execCommand('copy');
-          showCopyFeedback();
-        }
-        
-        // Clean up
-        document.body.removeChild(tempTextarea);
-      }
-    });
-    
-    function showCopyFeedback() {
-      const button = tableExportBtn.querySelector('button');
-      const originalHTML = button.innerHTML;
-      button.innerHTML = '<i class="fas fa-check"></i> Copied!';
-      
-      setTimeout(() => {
-        button.innerHTML = originalHTML;
-      }, 2000);
+    row.appendChild(actionCell);
+
+    // Mark row as done visually
+    if (seenIds.includes(data.idCard)) row.classList.add('done-row');
+
+    resultsBody.appendChild(row);
+  });
+
+  // Show or hide duplicate warning
+  const duplicateWarning = document.getElementById('duplicateWarning');
+  if (duplicateWarning) {
+    if (hasDuplicate) {
+      duplicateWarning.style.display = '';
+    } else {
+      duplicateWarning.style.display = 'none';
     }
-    
-    // Event listeners
-    imgInput.addEventListener('change', async function(e) {
-      if (!this.files || this.files.length === 0) return;
-      
-      const file = this.files[0];
-      
-      // Preprocess the image
-      const processedUrl = await preprocessImage(file, 2.5);
-      
-      previewImg.src = processedUrl;
-      previewImg.style.display = 'block';
-      editArea.style.display = 'none';
-      tsvArea.style.display = 'none';
-      results.innerHTML = '';
-      tsvOutput.value = '';
-      statusArea.innerHTML = '';
-      
-      // Process the image - this was missing!
-      processImage(processedUrl);
-    }); 
+  }
 
-    parseBtn.addEventListener('click', function() {
-      const text = ocrText.value;
-      const { rows, tsv } = parseTable(text);
-      if (rows && rows.length > 0) {
-        results.innerHTML = generateTable(HEADERS, rows);
-        tsvOutput.value = tsv;
-        tsvArea.style.display = 'block';
-        tableExportBtn.style.display = 'block';
-        statusArea.innerHTML = '<div class="success-message">✓ Table extracted successfully!</div>';
-      } else {
-        results.innerHTML = '<div class="error-message">Could not extract table data from the edited text.</div>';
-        tableExportBtn.style.display = 'none';
-      }
-    });
+  // Update Mark All as Done button state
+  const markAllBtn = document.getElementById('markAllDoneBtn');
+  const allMarked = allResults.length > 0 && allResults.every(r => seenIds.includes(r.idCard));
+  if (markAllBtn) {
+    markAllBtn.disabled = allMarked;
+    markAllBtn.innerHTML = allMarked ? '✔️ All Marked as Done' : '✔️ Mark All as Done';
+  }
+}
+  </script>
 
-    autoFixBtn.addEventListener('click', function() {
-      const text = ocrText.value;
-      const fixedText = autoFixOcrText(text);
-      ocrText.value = fixedText;
-      const { rows, tsv } = parseTable(fixedText);
-      if (rows && rows.length > 0) {
-        results.innerHTML = generateTable(HEADERS, rows);
-        tsvOutput.value = tsv;
-        tsvArea.style.display = 'block';
-        tableExportBtn.style.display = 'block';
-        statusArea.innerHTML = '<div class="success-message">✓ Table extracted using enhanced recovery!</div>';
-      } else {
-        results.innerHTML = '<div class="error-message">Could not extract table data even after fixing. Try editing the OCR text manually.</div>';
-        tableExportBtn.style.display = 'none';
-      }
-    });
+          <!-- ===== GENERATOR ONE ENDING POINT ===== -->
+       </div>
+      <!-- Generator 2: Foreign -->
+      <div id="foreignGen" class="generator-area" style="display:none">
+        <!-- ===== GENERATOR TWO STARTING POINT ===== -->
+<div style="
+  width: 100%;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 48px 0;
+">
+  <div style="
+    background: linear-gradient(90deg, #1976d2 30%, #26c6da 90%);
+    border-radius: 18px;
+    box-shadow: 0 6px 32px rgba(33,150,243,0.1);
+    padding: 36px 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    max-width: 410px;
+    width: 94vw;
+    margin: 0 auto;
+  ">
+    <span style="
+      font-size: 2.6rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      text-shadow: 0 3px 16px rgba(33,150,243,0.09);
+      font-family: 'Segoe UI', Arial, sans-serif;
+      "
+      >COMING SOON</span>
+    <span style="
+      color: #e0f7fa;
+      font-size: 1.18rem;
+      font-weight: 500;
+      margin-bottom: 10px;
+      text-align: center;
+      "
+    >Foreign Prescription Detail Generator</span>
+    <span style="
+      color: #fff59d;
+      font-size: 1.05rem;
+      margin-top: 7px;
+      text-align: center;
+      "
+    >Stay tuned! This feature is under development.</span>
+    <div style="margin-top: 18px;">
+      <svg width="68" height="68" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" stroke="#fff" stroke-width="2" fill="#26c6da"/>
+        <path d="M12 8v4l3 2" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+</div>
+        <!-- ===== GENERATOR TWO ENDING POINT ===== -->
+      </div>
+      </div>
+    </div>
+  </div>
+  <div class="topbar-container" id="themeBox" style="cursor:pointer;">
+  <span id="themeLabel" class="theme-label">Light mode</span>
+  <span id="themeToggle" title="Switch theme" class="theme-toggle-btn" style="pointer-events:none;">🌙</span>
+  <span class="credit">Made by Faalih 😊</span>
+</div>
+  <script>
+    function hideAllSections() {
+      document.getElementById('selectionPage').style.display = 'none';
+      document.getElementById('aasandhaGen').style.display = 'none';
+      document.getElementById('foreignGen').style.display = 'none';
+      document.getElementById('backBtn').style.display = 'none';
+    }
+    function showGenerator(which) {
+      hideAllSections();
+      document.getElementById('backBtn').style.display = '';
+      if (which === 'aasandha') document.getElementById('aasandhaGen').style.display = '';
+      if (which === 'foreign') document.getElementById('foreignGen').style.display = '';
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+    function showSelection() {
+      document.getElementById('backBtn').style.display = 'none';
+      document.getElementById('selectionPage').style.display = '';
+      document.getElementById('aasandhaGen').style.display = 'none';
+      document.getElementById('foreignGen').style.display = 'none';
+      window.scrollTo({top: 0, behavior: "smooth"});
+    }
+    showSelection();
+
+    // Dark mode toggle
+const themeBox = document.getElementById('themeBox');
+const themeToggle = document.getElementById('themeToggle');
+const themeLabel = document.getElementById('themeLabel');
+window.scrollTo({top: 0, behavior: "smooth"});
+function setTheme(dark) {
+  if (dark) {
+    document.body.classList.add('dark-mode');
+    themeToggle.textContent = '☀️';
+    themeToggle.title = "Switch to light mode";
+    themeLabel.textContent = "Dark mode";
+  } else {
+    document.body.classList.remove('dark-mode');
+    themeToggle.textContent = '🌙';
+    themeToggle.title = "Switch to dark mode";
+    themeLabel.textContent = "Light mode";
+  }
+}
+const savedTheme = localStorage.getItem('theme');
+setTheme(savedTheme === 'dark');
+themeBox.addEventListener('click', () => {
+  const isDark = !document.body.classList.contains('dark-mode');
+  setTheme(isDark);
+  localStorage.setItem('theme', isDark ? 'dark' : 'light');
+});
+
+window.addEventListener('beforeunload', function() {
+  sessionStorage.removeItem('seenIds');
+});
   </script>
 </body>
 </html>
